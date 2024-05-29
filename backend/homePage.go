@@ -7,12 +7,6 @@ import (
 
 // Serves the homepage
 func (h *HomePageHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// set up home page
-	if r.URL.Path != "/" {
-		http.Error(w, "Error 404", http.StatusNotFound)
-		return
-	}
-
 	tmpl, err := template.ParseFiles("frontend/html/index.html")
 	CatchError(err)
 
