@@ -1,30 +1,46 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
-	f "real-time-forum/backend" // functions in backend folder
+	"real-time-forum/backend/handlers"
+	helpers "real-time-forum/backend/utils"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+	// Create a Manager instance used to handle WebSocket Connections
+	manager := helpers.NewManager()
 
-	// should start with setting up database first in case something fucks up
-	db := f.SetUpDataBase()
-
-	// handle static files
-	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./frontend/css"))))
-	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./frontend/js"))))
-
-	home := f.HomePageHandler{DB: db}
-
-	// using http.Handle is suposed to be better for bigger projects than HandleFunc
-	// might need to do more reserch just in case
-	http.Handle("/", &home)
-
-	fmt.Println("Server listening on port 8080...")
-
+	defer helpers.Db.Close()
+	fs := http.FileServer(http.Dir("frontend"))
+	http.Handle("/frontend/", http.StripPrefix("/frontend/", fs))
+	http.HandleFunc("/", handlers.HandleIndex)
+	http.HandleFunc("/logincheck", handlers.HandleLoginCheck)
+	http.HandleFunc("/favicon.ico", handlers.FavHandler)
+	http.HandleFunc("/submitRegisterData", handlers.SubmitRegister)
+	http.HandleFunc("/check-availability", handlers.CheckAvailability)
+	http.HandleFunc("/submitlogin", handlers.SubmitLogin)
+	http.HandleFunc("/logout", handlers.LogOut)
+	http.HandleFunc("/categories", handlers.GetCategories)
+	http.HandleFunc("/posts", handlers.GetCategoryPosts)
+	http.HandleFunc("/getnickname", handlers.GetNickname)
+	http.HandleFunc("/commentdata", handlers.GetCommentData)
+	http.HandleFunc("/profile/data", handlers.GetUserProfileData)
+	http.HandleFunc("/user", handlers.GetUserData)
+	http.HandleFunc("/getpostdata", handlers.GetPostData)
+	http.HandleFunc("/getnicknamefromuserid", handlers.GetNickNameFromUserId)
+	http.HandleFunc("/addcomment", handlers.AddCommentHandler)
+	http.HandleFunc("/vote", handlers.AddPostLikeHandler)
+	http.HandleFunc("/addcomment/vote", handlers.AddCommentLikeHandler)
+	http.HandleFunc("/checkuserlike", handlers.CheckUserLikeHandler)
+	http.HandleFunc("/createpost", handlers.CreatePostHandler)
+	http.HandleFunc("/getuserid", handlers.GetUserIdHandler)
+	//http.HandleFunc("/ws", handlers.WsEndPoint)
+	http.HandleFunc("/ws", manager.ServeWS)
 	err := http.ListenAndServe(":8080", nil)
-	f.CatchError(err)
+	if err != nil {
+		log.Println(err)
+	}
 }

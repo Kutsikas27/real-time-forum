@@ -1,0 +1,11 @@
+a {
+  margin-right: 10px;
+  text-decoration: none;
+}
+form {
+  border-style: solid;
+  border-color: aliceblue;
+  border-width: 1px;
+  border-radius: 5px;
+  padding: 30px;
+}
